@@ -1,186 +1,150 @@
 # CEREGE
 
-![license](https://img.shields.io/badge/license-license-blue) ![offline-first](https://img.shields.io/badge/offline--first-air--gap-green) ![audit](https://img.shields.io/badge/audit-SHA3--256-orange) ![category](https://img.shields.io/badge/category-mining-lightgrey)
-
-> Anticloud-hardened packaging of the upstream project `CEREGE` in category **MINING**. No upstream snapshot is present on disk for this project; the pinned commit below was resolved during the second documentation pass, and the 12-improvement overlay lives in `anticloud/`. Every fact in this file traces to a file on disk in this project directory.
-
-**Category:** MINING · **Upstream:** https://github.com/palepine/CERegEx · **Upstream pin:** `b97a2191daf112e0dcb4860e743f144f907c5b50` · **Vendor:** Anticloud FZ LLE
-
----
+> Anticloud offline package — upstream: palepine/CERegEx @ `master`.
 
 ## What This Project Does
 
-**CEREGE** — CERegEx - text extraction toolkit; the upstream project is the source of truth for its exact scope (Python).
+A Cheat Engine plugin for scanning process memory for strings with regular expressions
 
-The project is vendored into the Anticloud project at a pinned upstream commit and hardened with the standard 12-improvement overlay (see the Benchmarks section).
+**Topics:** plugin, regex
 
-Project-specific facts detected in this directory:
+## Upstream README
 
-- Ecosystem: **Unknown (no standard manifest detected)** (manifests: none detected; scanned in project root)
-- Upstream snapshot: none on disk for this project; only the Anticloud packaging directories are present
-- Upstream commit pinned for this packaging: `b97a2191daf112e0dcb4860e743f144f907c5b50`
+# CERegEx
 
----
+A Cheat Engine plugin for scanning process memory with regular expressions.
 
-## Installation
+## Features
 
-No installation section was found in the upstream readme, so the commands below are generated from the manifests detected in this project directory.
+- Scan selected memory regions using Cheat-Engine-like protection flags `RWXC`
+- Multiple regex engines supported
+- Return match addresses and matched text back to Lua
+- Configuration:
+  - encoding
+  - regex engine
+  - case sensitivity
+  - minimum / maximum extracted string length
+  - find-one mode
 
-```sh
-# No upstream snapshot on disk; consult the upstream project (see the
-# Upstream section) for build and install instructions.
+## Build Requirements
+
+- Windows
+- VS2026 with C++ desktop development tools
+- `vcpkg`
+
+## Dependency Layout
+
+- `lua 5.3` (provided)
+- `CE SDK v5.0.0` (provided)
+
+### vcpkg dependencies
+
+- `re2`
+- `pcre2`
+
+## Building
+
+### 1. Install and integrate vcpkg
+
+If you do not already have `vcpkg` integrated with Visual Studio:
+`vcpkg integrate install`
+
+### 2. Restore dependencies
+
+From the solution directory, run:
+`vcpkg install`
+
+### 4. Build the project
+
+- `Release | x64`
+
+## Setup
+
+1. Copy the compiled DLL to `Cheat Engine\plugins`
+2. Open Cheat Engine
+3. Go to `Edit -> Settings -> Plugins`
+4. `Add new` the plugin DLL
+5. Check the added plugin and hit `OK`
+
+## Lua API
+
+The plugin exposes a Lua entrypoint for regex-based memory scanning.
+
+### Function
+
+```lua
+lregexScan( { pattern, protectionFlags, encoding, regexEngine, findOne, caseSensitive, minLength, maxLength } )
 ```
 
-Overlay install (this project):
+### Parameters
 
-```sh
-python -m pip install -e anticloud/     # overlay package with the 12 improvements
-python anticloud/cli.py --help          # 13 subcommands, JSON stdout
+A dictionary table with the following fields (all optional except for pattern):
+- `pattern`
+  - Regex pattern string
+- `protection`
+  - Cheat Engine-style protection filter string
+- `encoding`
+  - String extraction encoding, such as `"ASCII"` or `"UTF16"`
+- `engine`
+  - Regex engine name, such as `"STD"`, `"RE2"`, or `"PCRE2"`
+- `findOne`
+  - Boolean flag that stops after the first match if enabled
+- `caseSensitive`
+  - Boolean flag for case-sensitive matching
+- `minLength`
+  - Minimum extracted candidate string length
+- `maxLength`
+  - Maximum extracted candidate string length
+
+On success, it returns a table with dictionaries of two fields:
+- `address`
+  - Integer pointing to the start of the matched string in the target
+- `text`
+  - String containing a matched string
+
+Returns `nil` on any failure or if no matches
+
+### Example
+
+```lua
+return lregexScan({
+    pattern = [[Godot\sEngine\s]],
+    protection = "WR-E-C",
+    encoding = "ASCII",
+    engine = "RE2",
+    findOne = true,
+    caseSensitive = true,
+    minLength = 8,
+    maxLength = 20
+}) or {}
 ```
 
----
+## Supported Encodings
 
-## Usage
+Currently supported:
+- `ASCII`
+- `UTF-16LE BMP`
 
-No usage section was found in the upstream readme. Entry points detected in this project directory:
+## Supported Regex Engines
 
-Browse the snapshot layout listed under What This Project Does and follow the upstream run instructions for the detected ecosystem (Unknown (no standard manifest detected)).
+- `STD` uses [std::regex](https://en.cppreference.com/w/cpp/regex.html)
+- `RE2`
+  - Faster and safer
+  - Does not support the full PCRE-style feature set
+  - Good for portable and simpler patterns
+- `PCRE2`
+  - Supports more advanced syntax
+  - Suitable for patterns using features such as lookaheads
 
-Anticloud overlay CLI (available in every project):
+Engine-specific syntax is allowed when that engine is selected
 
-```sh
-python anticloud/cli.py --help     # 13 subcommands, JSON stdout
-python anticloud/cli.py checks     # run the 16-check suite
-```
-
----
-
-## API
-
-The upstream API surface is defined by the `CEREGE` upstream project (Unknown (no standard manifest detected) ecosystem); no source snapshot is vendored for this project. Entry points recorded for this packaging:
-
-- Source modules: `01_INVESTOR_PACKAGE/`, `10_TECHNICAL_HANDOFF/`, `25_MILLENNIUM_PROBLEM_PROPOSALS/`, `28_TECHNICAL_WHITEPAPER/`, `29_INVESTOR_MEMO/`, `30_LOI/`
-- Overlay API: `anticloud/cli.py` exposes 13 subcommands with JSON stdout; `anticloud/bench/runner.py` runs the 16-check suite; `anticloud/provenance/chain.py` exposes the SHA3-256 + Ed25519 provenance chain.
-
----
-
-## Dependencies
-
-| Metric | Value |
-|--------|-------|
-| Ecosystem | Unknown (no standard manifest detected) |
-| Manifests detected | none |
-| Files in snapshot | not captured in this benchmark snapshot |
-| Lines of code | not captured in this benchmark snapshot |
-| Dependency references | not captured in this benchmark snapshot |
-| Upstream license | Not captured in this benchmark snapshot (no upstream snapshot on disk) |
-| Overlay license | Anticommons 0.1.0 |
-
-Pinned lockfile: `anticloud/requirements.lock` (hash-pinned, PEP 508). SBOM: `sbom.cdx.json` (CycloneDX 1.5, pinned to the upstream SHA).
-
----
-
-## Configuration
-
-No configuration section was found in the upstream readme. Configuration-relevant files detected in this project directory:
-
-- None detected at the snapshot root; consult the upstream documentation link in the Upstream section.
-
-Overlay configuration (Anticloud):
-
-- `anticloud/` - improvement overlay; environment-driven, no cloud dependency
-- `LEDGERS/` - aioss tamper-evident chain files (per-project, verified with `aioss verify --live`)
-- `ISOLATED_LAB_RESULTS/` - reproducibility record (environment, reproduction steps, result register, evidence)
-- `OFFICIAL_BENCHMARKS/` - 26 framework assessments for this project
-
----
-
-## Contributing
-
-Upstream contributions: fork the `CEREGE` project, create a feature branch, and open a pull request against upstream. Keep `UPSTREAM_CLONE/` untouched in this packaging; put improvements in the `anticloud/` overlay.
-
-Overlay contributions: run the 16-check suite before opening a pull request:
-
-```sh
-python anticloud/bench/runner.py --cwd anticloud
-```
-
----
+## License
+This project is released under the MIT License. See LICENSE for details.
 
 ## License
 
-**Upstream license: Not captured in this benchmark snapshot (no upstream snapshot on disk).** The upstream project linked in the Upstream section is the authoritative source for its license terms.
+Upstream terms preserved in `THIRD_PARTY_LICENSES/`. Overlay licensed under Anticommons 0.1.0.
 
-### Anticommons 0.1.0 overlay
+## Verification
 
-The Anticloud integration overlay in `anticloud/` - improvements 1 through 12 listed under Benchmarks - is licensed under **Anticommons 0.1.0**. Upstream code remains under its original Not captured in this benchmark snapshot (no upstream snapshot on disk) terms. See `ANTICOMMONS_LICENSE.md` in this directory for the overlay terms and contact.
-
-SPDX: `Not captured in this benchmark snapshot (no upstream snapshot on disk)` (upstream) + Anticommons 0.1.0 (overlay, dual).
-
----
-
-## Upstream
-
-- **Project:** `CEREGE` (category: MINING)
-- **Upstream URL:** https://github.com/palepine/CERegEx
-- **Pinned commit (SHA):** `b97a2191daf112e0dcb4860e743f144f907c5b50`
-- **Branch:** master
-- **Pin provenance:** GitHub API commits/master. The parent-project stamp is explicitly rejected for this project.
-- **Snapshot location:** none on disk for this project
-- **Benchmark snapshot:** `BENCH.json`
-
----
-
-## Benchmarks
-
-Measured by the Anticloud assurance suite. Every value below is read from this
-project's `BENCH.json`, produced by a real run — the SHA3-256 of that file is
-`e2b481b768932ea8ffe742ef0bb1eef93e7b125b5b78711a01aba9666418142f`.
-
-| Framework | Controls | Evidence | Coverage | Result |
-|---|---|---|---|---|
-| OWASP Top 10 for LLM Applications | 10 controls mapped | 10 with evidence | 100.0% | PASS |
-| OWASP Top 10 (2021) | 9 controls mapped | 9 with evidence | 100.0% | PASS |
-| SOC 2 Type II readiness | 9 controls mapped | 9 with evidence | 100.0% | PASS |
-| NIST AI Risk Management Framework | 8 controls mapped | 8 with evidence | 100.0% | PASS |
-| NIST SP 800-53 Rev. 5 | 12 controls mapped | 12 with evidence | 100.0% | PASS |
-| NIST Cybersecurity Framework 2.0 | 8 controls mapped | 8 with evidence | 100.0% | PASS |
-| FedRAMP Rev. 5 | 10 controls mapped | 10 with evidence | 100.0% | PASS |
-| PCI DSS v4.0.1 | 11 controls mapped | 11 with evidence | 100.0% | PASS |
-| ISO/IEC 27001:2022 | 9 controls mapped | 9 with evidence | 100.0% | PASS |
-| MITRE ATT&CK v16 | 12 controls mapped | 12 with evidence | 100.0% | PASS |
-| ML Technology Readiness Level | TRL 8 | 8/8 criteria | | PASS |
-
-**Overall: 16/16 checks passing.**
-
-See `ISOLATED_LAB_RESULTS/03_Result_Register.md` for the 16-check register with pass condition, command and observed value per check.
-
-Framework folders in `OFFICIAL_BENCHMARKS/` state the control set and the
-evidence source bound to each control. This project does not claim an audit
-opinion, a SOC report, a FedRAMP authorisation or a PCI attestation — those are
-issued by an independent assessor.
-
-
-
-## Archives and Permanent Records
-
-| Platform | Identifier | Volume |
-|---|---|---|
-| Harvard Dataverse | DOI 10.7910/DVN/YMJKOG | 145 citable datasets |
-| AIOSS verification kit | DOI 10.7910/DVN/OORKNJ | Offline hash verification |
-| Zenodo (CERN) | — | 146 records, DOI-registered |
-| OSF | — | 144 preregistered records |
-| Figshare | author 20849885 | Research data and figures |
-| Internet Archive | aioss-format, Anticode | Permanent binary specification |
-| ORCID | 0009-0009-2233-6107 | Permanent researcher ID |
-| Kaggle | pax-millennium-20 | Reproducible T4 benchmark run |
-
-
-
-## Press and Independent Publication
-
-The PAX benchmark release was distributed by Newsfile wire to 336 outlets
-(312 Web, 23 Terminal, 1 Application), including Yahoo Finance, The Globe and Mail, Business Insider, National Post, Financial Post, StreetInsider, Digital Journal, Barchart, International Business Times, and fox47 · National Law Review.
-Wire distribution makes the announcement dated, public, and indexed, which
-makes the claim checkable.
-
+Recompute the SHA3-256 of `BENCH.json` and compare to this package’s register. Any drift = invalid package.
